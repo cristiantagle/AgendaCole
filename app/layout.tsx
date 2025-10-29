@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </header>
         <main className="container">{children}</main>
         <Toaster />
-        <footer className="footer"><small>Next.js 16 + Supabase</small></footer>
+        <footer className="footer"><small>Creado por FireKiring / DegS</small></footer>
       </body>
     </html>
   );

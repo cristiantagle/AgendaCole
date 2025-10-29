@@ -13,6 +13,12 @@ body{
   background: var(--bg);
 }
 .container{max-width:1200px;margin:0 auto;padding:16px}
+.topbar{position:sticky;top:0;z-index:10;background:#ffffffcc;backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--card-border);padding:10px 16px}
+.brand{display:flex;gap:10px;align-items:center}
+.brand h1{font-size:16px;margin:0}
+.topbar{position:sticky;top:0;z-index:10;background:#ffffffcc;backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--card-border);padding:10px 16px}
+.brand{display:flex;gap:10px;align-items:center}
+.brand h1{font-size:16px;margin:0}
 .grid{display:grid;gap:12px}
 .toolbar{display:grid;grid-template-columns:1fr 160px 160px;gap:10px;margin-bottom:12px}
 input,select,textarea{background:#ffffff;color:var(--text);border:1px solid var(--card-border);border-radius:12px;padding:12px 14px;outline:none}
