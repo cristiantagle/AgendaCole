@@ -65,7 +65,7 @@ export default function Page(){
   const [impOpen, setImpOpen] = useState(false);
   const [impFile, setImpFile] = useState<File|null>(null);
   const [headers, setHeaders] = useState<string[]>([]);
-  const [mapping, setMapping] = useState<any>({ nombre:'', curso:'' });
+  const [mapping, setMapping] = useState<any>({ nombre:'', curso:'', codigo:'' });
   const [detailId, setDetailId] = useState<string>('');
   const [courseModal, setCourseModal] = useState<string>('');
   const [addOpen, setAddOpen] = useState<boolean>(false);
@@ -98,8 +98,9 @@ export default function Page(){
         return arr.find(h=> cands.some(c=> lc(h).includes(lc(c)))) || '';
       };
       setMapping({
-        nombre: find(hdrs, ['colegio','nombre','school']),
-        curso: find(hdrs, ['curso','grado','course','class'])
+        nombre: find(hdrs, ['colegio','nombre','nombre colegio','nombre establecimiento','establecimiento','school']),
+        curso: find(hdrs, ['curso','grado','course','class']),
+        codigo: find(hdrs, ['codigo colegio','código colegio','codigo','código','rbd'])
       });
       setImpFile(file); setImpOpen(true);
     }catch{ toast('No se pudo previsualizar el archivo', 'error'); }
@@ -197,6 +198,12 @@ export default function Page(){
           </label>
           <label>Curso (opcional)
             <select value={mapping.curso} onChange={e=>setMapping({...mapping, curso:e.target.value})}>
+              <option value="">— Ninguno —</option>
+              {headers.map(h=> <option key={h} value={h}>{h}</option>)}
+            </select>
+          </label>
+          <label>Código colegio (opcional)
+            <select value={mapping.codigo} onChange={e=>setMapping({...mapping, codigo:e.target.value})}>
               <option value="">— Ninguno —</option>
               {headers.map(h=> <option key={h} value={h}>{h}</option>)}
             </select>

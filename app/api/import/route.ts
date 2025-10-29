@@ -19,18 +19,27 @@ export async function POST(req: Request) {
   const norm = (v: any) => (v ?? '').toString().trim();
   for (const r of rows) {
     const src = r as any;
-    // Nombre del colegio (preferir columna "colegio" incluso si mapping apunta a otro campo)
-    let nombre = norm(
-      mapping?.nombre ? src[mapping.nombre] : (
-        src['colegio'] || src['Colegio'] || src['COLEGIO'] ||
-        src['nombre'] || src['Nombre'] || src['NOMBRE'] ||
-        src['school'] || src['School']
-      )
-    );
-    const nombreCol = norm(src['colegio'] || src['Colegio'] || src['COLEGIO']);
-    if (nombreCol) nombre = nombreCol; // Forzar columna 'colegio' si existe
+    // Detección robusta de nombre y código
+    const rawNombreCand = mapping?.nombre ? src[mapping.nombre]
+      : (src['colegio'] ?? src['Colegio'] ?? src['COLEGIO'] ??
+         src['nombre'] ?? src['Nombre'] ?? src['NOMBRE'] ??
+         src['nombre colegio'] ?? src['Nombre Colegio'] ?? src['NOMBRE COLEGIO'] ??
+         src['nombre establecimiento'] ?? src['Nombre Establecimiento'] ?? src['NOMBRE ESTABLECIMIENTO'] ??
+         src['establecimiento'] ?? src['Establecimiento'] ??
+         src['school'] ?? src['School']);
+    const rawCodigoCand = mapping?.codigo ? src[mapping.codigo]
+      : (src['código colegio'] ?? src['codigo colegio'] ?? src['CODIGO COLEGIO'] ?? src['CÓDIGO COLEGIO'] ??
+         src['codigo'] ?? src['Código'] ?? src['CÓDIGO'] ??
+         src['rbd'] ?? src['RBD']);
+    const nombreColRaw = (src['colegio'] ?? src['Colegio'] ?? src['COLEGIO']);
+    const nombreCol = norm(nombreColRaw);
+    const codigoMap = norm(rawCodigoCand);
+    const isNombreColNumeric = /^[0-9]+$/.test(nombreCol || '');
+    let codigo = codigoMap || (isNombreColNumeric ? nombreCol : '');
+    let nombre = norm(rawNombreCand);
+    if (!isNombreColNumeric && nombreCol) nombre = nombreCol;
     if (!nombre) continue;
-    // Datos del esquema entregado: codigo, curso + letra, telefono colegio, mailcolegio, pagina web, director
+    // Datos del esquema: curso + letra, teléfono, correo, página, director
     const telefono = norm(
       src['TELÉFONO COLEGIO'] || src['TELEFONO COLEGIO'] || src['TELÉFONOCOLEGIO'] || src['TELEFONOCOLEGIO'] ||
       src['Telefono Colegio'] || src['telefono colegio'] || src['TELF COLEGIO'] ||
@@ -40,8 +49,7 @@ export async function POST(req: Request) {
       src['MAILCOLEGIO'] || src['mailcolegio'] || src['EMAIL COLEGIO'] ||
       src['correo'] || src['Correo'] || src['email'] || src['Email']
     );
-    const pagina = norm(src['PÁGINAWEB'] || src['PaginaWeb'] || src['PAGINAWEB'] || src['página web'] || src['pagina web']);
-    const codigo = norm(src['código colegio'] || src['codigo colegio'] || src['CÓDIGO COLEGIO'] || src['CODIGO COLEGIO']);
+    const pagina = norm(src['PÁGINAWEB'] || src['PaginaWeb'] || src['PAGINAWEB'] || src['página web'] || src['pagina web']);
     const nombreDirector = norm(src['nombre director'] || src['Nombre Director'] || src['NOMBRE DIRECTOR']);
     const apellidoDirector = norm(src['apellido  director'] || src['apellido director'] || src['Apellido Director'] || src['APELLIDO DIRECTOR']);
     const mailDirector = norm(src['MAILDIRECTOR'] || src['maildirector'] || src['MAIL DIRECTOR']);
@@ -96,3 +104,4 @@ export async function POST(req: Request) {
 
   return Response.json({ ok: true, rows: rows.length });
 }
+
