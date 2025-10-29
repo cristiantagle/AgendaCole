@@ -51,7 +51,7 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
 
   async function save(){
     if (!s) return; setSaving(true);
-    const { id, ...patch } = s;
+    const { id, ...patch } = s as any;
     const r = await fetch(`/api/schools/${id}`, { method:'PATCH', body: JSON.stringify(patch), headers: token? { Authorization: `Bearer ${token}` } : {} });
     setSaving(false);
     if (!r.ok) { toast('Error al guardar', 'error'); return; }
@@ -88,6 +88,7 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
     toast('Curso agregado', 'success');
     loadAll();
   }
+
   async function deleteCourse(id:string){ setConfirmCourseId(id); }
   async function confirmDeleteCourse(){
     if (!confirmCourseId) return;
@@ -97,13 +98,16 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
     toast('Curso eliminado', 'success');
     loadAll();
   }
+
   async function addComment(){
-    if (!s) return; const autor = (document.getElementById('sdAutor') as HTMLInputElement)?.value || '—';
-    const texto = (document.getElementById('sdTexto') as HTMLInputElement)?.value; if(!texto) return;
+    if (!s) return;
+    const autor = (document.getElementById('sdAutor') as HTMLInputElement)?.value || '';
+    const texto = (document.getElementById('sdTexto') as HTMLInputElement)?.value || '';
+    if (!texto) return;
     const r = await fetch(`/api/comments/school/${s.id}`, { method:'POST', body: JSON.stringify({ autor, texto }), headers: token? { Authorization: `Bearer ${token}` } : {} });
     if (!r.ok) { toast('No se pudo agregar el comentario', 'error'); return; }
+    (document.getElementById('sdAutor') as HTMLInputElement).value='';
     (document.getElementById('sdTexto') as HTMLInputElement).value='';
-    toast('Comentario agregado', 'success');
     loadAll();
   }
   async function delComment(id:string){ setConfirmCommentId(id); }
@@ -118,28 +122,29 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
 
   return (
     <Modal isOpen={open} title={s?.nombre || 'Colegio'} onClose={onClose}>
-      <div className="meta">Colegios &gt; {s?.nombre || 'Colegio'}</div>
-      {!s ? <div className="meta">Cargando…</div> : (
-        <div className="grid" style={{gap:12}}>
-          {/* Datos colegio */}
-          <div className="grid" style={{gridTemplateColumns:'1fr', gap:10}}>
-            <div><label>Nombre</label><input value={s.nombre||''} onChange={e=>setS({...s, nombre:e.target.value})} /></div>
-            <div><label>Teléfono</label><input value={s.telefono||''} onChange={e=>setS({...s, telefono:e.target.value})} /></div>
-            <div><label>Correo</label><input value={s.correo||''} onChange={e=>setS({...s, correo:e.target.value})} /></div>
-            <div><label>Código</label><input value={s.codigo_colegio||''} onChange={e=>setS({...s, codigo_colegio:e.target.value})} /></div>
-            <div><label>Web</label><input value={s.pagina_web||''} onChange={e=>setS({...s, pagina_web:e.target.value})} /></div>
-            <div><label>Director nombre</label><input value={s.director_nombre||''} onChange={e=>setS({...s, director_nombre:e.target.value})} /></div>
-            <div><label>Director apellido</label><input value={s.director_apellido||''} onChange={e=>setS({...s, director_apellido:e.target.value})} /></div>
-            <div><label>Director email</label><input value={s.director_email||''} onChange={e=>setS({...s, director_email:e.target.value})} /></div>
-            <div><label>Estado</label>
-              <select value={s.estado||'no_contactado'} onChange={e=>setS({...s, estado:e.target.value as any})}>
-                <option value="no_contactado">No contactado</option>
-                <option value="contactado">Contactado</option>
-              </select>
+      {!s ? (
+        <div className="meta">Cargando…</div>
+      ) : (
+        <div className="grid" style={{gap:16}}>
+          {/* Datos del colegio */}
+          <div className="grid">
+            <div className="row" style={{justifyContent:'space-between'}}>
+              <h4 style={{margin:0}}>Detalle del colegio</h4>
+              <span className="meta">{s.estado==='contactado'?'Contactado':'No contactado'}</span>
+            </div>
+            <div className="grid" style={{gridTemplateColumns:'1fr 1fr', gap:10}}>
+              <div><label>Nombre</label><input value={s.nombre||''} onChange={e=>setS({...s, nombre:e.target.value})} /></div>
+              <div><label>Teléfono</label><input value={s.telefono||''} onChange={e=>setS({...s, telefono:e.target.value})} /></div>
+              <div><label>Correo</label><input value={s.correo||''} onChange={e=>setS({...s, correo:e.target.value})} /></div>
+              <div><label>Página web</label><input value={s.pagina_web||''} onChange={e=>setS({...s, pagina_web:e.target.value})} /></div>
+              <div><label>Código colegio</label><input value={s.codigo_colegio||''} onChange={e=>setS({...s, codigo_colegio:e.target.value})} /></div>
+              <div><label>Nombre director</label><input value={s.director_nombre||''} onChange={e=>setS({...s, director_nombre:e.target.value})} /></div>
+              <div><label>Apellido director</label><input value={s.director_apellido||''} onChange={e=>setS({...s, director_apellido:e.target.value})} /></div>
+              <div><label>Email director</label><input value={s.director_email||''} onChange={e=>setS({...s, director_email:e.target.value})} /></div>
             </div>
             <div><label>Comentarios</label><textarea value={s.comentarios||''} onChange={e=>setS({...s, comentarios:e.target.value})} /></div>
             <div className="row" style={{justifyContent:'flex-end'}}>
-              <button onClick={save} disabled={saving}>💾 Guardar</button>
+              <button onClick={save} disabled={saving}>Guardar</button>
             </div>
           </div>
 
@@ -155,7 +160,7 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
               </select>
               <input id="sdDesc" placeholder="Descripción" />
               <input id="sdObs" placeholder="Observaciones" />
-              <button onClick={addAgenda} style={{width:'100%'}}>🗓️ Agendar</button>
+              <button onClick={addAgenda} style={{width:'100%'}}>Agendar</button>
             </div>
             <div className="list">
               {agenda.map(a => (
@@ -182,7 +187,7 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
               <h4 style={{margin:0}}>Cursos</h4>
               <div style={{display:'flex', gap:8}}>
                 <input id="sdNewCurso" placeholder="Ej. 1A" />
-                <button className="secondary" onClick={addCourse}>➕ Agregar curso</button>
+                <button className="secondary" onClick={addCourse}>Agregar curso</button>
               </div>
             </div>
             <div className="list">
@@ -190,11 +195,10 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
                 <div className="item" key={c.id}>
                   <div>
                     <div style={{fontWeight:600}}>{c.curso}</div>
-                    
                   </div>
                   <div style={{display:'flex', gap:8}}>
-                    <button onClick={()=>onOpenCourse(c.id)}>🗓️ Agenda</button>
-                    <button className="danger" onClick={()=>deleteCourse(c.id)}>🗑️</button>
+                    <button onClick={()=>onOpenCourse(c.id)}>Agenda</button>
+                    <button className="danger" onClick={()=>deleteCourse(c.id)}>Eliminar</button>
                   </div>
                 </div>
               ))}
@@ -213,10 +217,10 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
               {comments.map(c => (
                 <div className="item" key={c.id}>
                   <div>
-                    <div className="meta">{new Date(c.fecha).toLocaleString()} • {c.autor||'—'}</div>
+                    <div className="meta">{new Date(c.fecha).toLocaleString()} • {c.autor||''}</div>
                     <div>{c.texto||''}</div>
                   </div>
-                  <button className="danger" onClick={()=>delComment(c.id)}>🗑️</button>
+                  <button className="danger" onClick={()=>delComment(c.id)}>Eliminar</button>
                 </div>
               ))}
             </div>
@@ -250,7 +254,7 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
                   <span className="badge col">{c.colegio}</span>
                   {c.curso ? <span className="badge course">{c.curso}</span> : null}
                   <span className={`badge type ${c.tipo}`}>{c.tipo==='llamada'?'Llamada':'Visita'}</span>
-                  <span className="meta"> {c.fecha} {c.hora} — {c.tipo}</span>
+                  <span className="meta"> {c.fecha} {c.hora} • {c.tipo}</span>
                 </li>
               ))}
             </ul>

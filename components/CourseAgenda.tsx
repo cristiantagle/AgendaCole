@@ -61,7 +61,7 @@ export default function CourseAgenda({ courseId, open, onClose }: { courseId:str
           <input value="Visita" disabled className="secondary" />
           <input id="cgDesc" placeholder="Descripción" />
           <input id="cgObs" placeholder="Observaciones" />
-          <button onClick={add} style={{width:'100%'}}>🗓️ Agendar</button>
+          <button onClick={add} style={{width:'100%'}}>Agendar</button>
         </div>
         <div className="list">
           {agenda.map(a => (
@@ -90,7 +90,6 @@ export default function CourseAgenda({ courseId, open, onClose }: { courseId:str
         const r2 = await fetch(`/api/appointments/course/${courseId}`, { method:'POST', body: JSON.stringify({ fecha, hora, tipo, descripcion, observaciones, force: true }), headers: token? { Authorization: `Bearer ${token}` } : {} });
         setConflictOpen(false);
         if (!r2.ok) return; load();
-        // Notificar a SchoolDetail para refrescar si está abierto
         if (schoolId) window.dispatchEvent(new CustomEvent('app:refresh-appointments', { detail: { schoolId } }));
       } : undefined}
       okText="Agendar de todas maneras"
@@ -104,7 +103,7 @@ export default function CourseAgenda({ courseId, open, onClose }: { courseId:str
                 <span className="badge col">{c.colegio}</span>
                 {c.curso ? <span className="badge course">{c.curso}</span> : null}
                 <span className={`badge type ${c.tipo}`}>{c.tipo==='llamada'?'Llamada':'Visita'}</span>
-                <span className="meta"> {c.fecha} {c.hora} — {c.tipo}</span>
+                <span className="meta"> {c.fecha} {c.hora} • {c.tipo}</span>
               </li>
             ))}
           </ul>
@@ -119,3 +118,4 @@ export default function CourseAgenda({ courseId, open, onClose }: { courseId:str
     </>
   );
 }
+
