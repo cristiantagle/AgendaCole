@@ -77,6 +77,13 @@ export default function Page(){
   const [courseModal, setCourseModal] = useState<string>('');
   const [addOpen, setAddOpen] = useState<boolean>(false);
   const [confirmSchoolId, setConfirmSchoolId] = useState<string>('');
+  const [confirmApptId, setConfirmApptId] = useState<string>('');
+  async function confirmDeleteAppt(){
+    if (!confirmApptId) return;
+    await fetch(`/api/appointments/${confirmApptId}`, { method:'DELETE', headers: token? { Authorization: `Bearer ${token}` } : {} });
+    setConfirmApptId('');
+    loadUpcoming();
+  }
   async function confirmRemoveSchool(){
     if (!confirmSchoolId) return;
     const r = await fetch(`/api/schools/${confirmSchoolId}`, { method:'DELETE', headers: token? { Authorization: `Bearer ${token}` } : {} });
@@ -158,11 +165,7 @@ export default function Page(){
                   await fetch(`/api/appointments/${a.id}`, { method:'PATCH', body: JSON.stringify({ fecha, hora }), headers: { 'Content-Type':'application/json', ...(token? { Authorization: `Bearer ${token}` } : {}) } });
                   loadUpcoming();
                 }}>Editar</button>
-                <button className="danger" onClick={async ()=>{
-                  if (!confirm('Eliminar agendamiento?')) return;
-                  await fetch(`/api/appointments/${a.id}`, { method:'DELETE', headers: token? { Authorization: `Bearer ${token}` } : {} });
-                  loadUpcoming();
-                }}>Eliminar</button>
+                <button className="danger" onClick={()=> setConfirmApptId(a.id)}>Eliminar</button>
               </div>
             </div>
           ))}
@@ -266,6 +269,14 @@ export default function Page(){
       confirmText="Eliminar"
       onCancel={()=> setConfirmSchoolId('')}
       onConfirm={confirmRemoveSchool}
+    />
+    <ConfirmDialog
+      open={Boolean(confirmApptId)}
+      title="Eliminar agendamiento"
+      description="¿Seguro que deseas eliminar este agendamiento?"
+      confirmText="Eliminar"
+      onCancel={()=> setConfirmApptId('')}
+      onConfirm={confirmDeleteAppt}
     />
     </>
   );
