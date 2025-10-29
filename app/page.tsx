@@ -62,7 +62,7 @@ export default function Page(){
 
   async function addSchool(){
     const nombre = prompt('Nombre del colegio'); if(!nombre) return;
-    const direccion = prompt('Dirección')||''; const telefono = prompt('Teléfono')||''; const correo = prompt('Correo')||'';
+    const direccion = prompt('DirecciÃ³n')||''; const telefono = prompt('TelÃ©fono')||''; const correo = prompt('Correo')||'';
     const r = await fetch('/api/schools', { method:'POST', body: JSON.stringify({ nombre, direccion, telefono, correo, estado:'no_contactado' }), headers: token? { Authorization: `Bearer ${token}` } : {} });
     if(!r.ok){ toast('Error al agregar colegio', 'error'); return; }
     load();
@@ -115,7 +115,7 @@ export default function Page(){
       setMapping({
         nombre: find(hdrs, ['colegio','nombre','nombre colegio','nombre establecimiento','establecimiento','school']),
         curso: find(hdrs, ['curso','grado','course','class']),
-        codigo: find(hdrs, ['codigo colegio','código colegio','codigo','código','rbd'])
+        codigo: find(hdrs, ['codigo colegio','cÃ³digo colegio','codigo','cÃ³digo','rbd'])
       });
       setImpFile(file); setImpOpen(true);
     }catch{ toast('No se pudo previsualizar el archivo', 'error'); }
@@ -126,7 +126,7 @@ export default function Page(){
     const fd = new FormData(); fd.append('file', impFile); fd.append('mapping', JSON.stringify(mapping));
     const r = await fetch('/api/import', { method:'POST', body: fd, headers: token? { Authorization: `Bearer ${token}` } : {} });
     if (!r.ok) { toast('Error al importar', 'error'); return; }
-    toast('Importación completada', 'success');
+    toast('ImportaciÃ³n completada', 'success');
     setImpOpen(false); setImpFile(null); load();
   }
 
@@ -142,10 +142,10 @@ export default function Page(){
   return (
     <>
     <div className="container grid">
-      {/* Próximos agendamientos */}
+      {/* PrÃ³ximos agendamientos */}
       <div className="card" style={{padding:14}}>
         <div className="row" style={{justifyContent:'space-between'}}>
-          <h3 style={{margin:0}}>Próximos agendamientos</h3>
+          <h3 style={{margin:0}}>PrÃ³ximos agendamientos</h3>
         </div>
         <div className="list">
           {upcoming.map(a => (
@@ -160,28 +160,23 @@ export default function Page(){
                 <div className="meta">{a.descripcion||''}</div>
               </div>
               <div className="row" style={{gap:6}}>
-                <button className="secondary" onClick={async ()=>{
-                  const fecha = prompt('Nueva fecha (YYYY-MM-DD)', a.fecha)||a.fecha;
-                  const hora = prompt('Nueva hora (HH:MM:SS)', a.hora)||a.hora;
-                  await fetch(`/api/appointments/${a.id}`, { method:'PATCH', body: JSON.stringify({ fecha, hora }), headers: { 'Content-Type':'application/json', ...(token? { Authorization: `Bearer ${token}` } : {}) } });
-                  loadUpcoming();
-                }}>Editar</button>
+                <button className="secondary" onClick={()=> setEditAppt({ id:a.id, fecha:a.fecha, hora:a.hora })}>Editar</button>
                 <button className="danger" onClick={()=> setConfirmApptId(a.id)}>Eliminar</button>
               </div>
             </div>
           ))}
-          {!upcoming.length && <div className="meta">Sin agendamientos próximos</div>}
+          {!upcoming.length && <div className="meta">Sin agendamientos prÃ³ximos</div>}
         </div>
       </div>
       <div className="toolbar">
-        <input placeholder="Buscar por nombre, código, director, teléfono, correo o web" value={q} onChange={e=>setQ(e.target.value)} />
+        <input placeholder="Buscar por nombre, cÃ³digo, director, telÃ©fono, correo o web" value={q} onChange={e=>setQ(e.target.value)} />
         <select value={estado} onChange={e=>setEstado(e.target.value as any)}>
           <option value="todos">Todos</option>
           <option value="contactado">Contactado</option>
           <option value="no_contactado">No contactado</option>
         </select>
         <select value={sort} onChange={e=>setSort(e.target.value as any)}>
-          <option value="nombre">Orden: Alfabético</option>
+          <option value="nombre">Orden: AlfabÃ©tico</option>
           <option value="estado">Orden: Estado</option>
         </select>
       </div>
@@ -189,18 +184,18 @@ export default function Page(){
       <div className="row" style={{justifyContent:'space-between'}}>
         <h2 style={{margin:0}}>Colegios</h2>
         <div style={{display:'flex', gap:8}}>
-          <button onClick={()=> setAddOpen(true)}>➕ Agregar colegio</button>
+          <button onClick={()=> setAddOpen(true)}>âž• Agregar colegio</button>
           <label className="secondary" style={{padding:'10px 12px', borderRadius:8, cursor:'pointer'}}>
             Importar Excel
             <input type="file" accept=".xlsx,.xls,.csv" style={{display:'none'}} onChange={async e=>{
               const file = e.target.files?.[0]; if(!file) return; await openImport(file);
             }} />
           </label>
-          <button onClick={exportColegios}>⬇️ Exportar</button>
+          <button onClick={exportColegios}>â¬‡ï¸ Exportar</button>
         </div>
       </div>
 
-      {loading? <div className="meta">Cargando…</div> : null}
+      {loading? <div className="meta">Cargandoâ€¦</div> : null}
 
       <div className="cards">
         {schools.map(s => (
@@ -210,21 +205,21 @@ export default function Page(){
               <span className="meta">{s.estado==='contactado'?'Contactado':'No contactado'}</span>
             </div>
             <div className="meta">
-              <div>📞 <a href={`tel:${s.telefono||''}`}>{s.telefono||'—'}</a></div>
+              <div>ðŸ“ž <a href={`tel:${s.telefono||''}`}>{s.telefono||'â€”'}</a></div>
               {s.pagina_web ? (
-                <div>🌐 <a target="_blank" href={(String(s.pagina_web||'').startsWith('http')? String(s.pagina_web): `https://${String(s.pagina_web)}`)}>{s.pagina_web}</a></div>
+                <div>ðŸŒ <a target="_blank" href={(String(s.pagina_web||'').startsWith('http')? String(s.pagina_web): `https://${String(s.pagina_web)}`)}>{s.pagina_web}</a></div>
               ) : null}
-              <div>✉️ <a href={`mailto:${s.correo||''}`}>{s.correo||'—'}</a></div>              {(s.director_nombre || s.director_apellido) ? (
-                <div>👤 Director: {(s.director_nombre||'') + ' ' + (s.director_apellido||'')}</div>
+              <div>âœ‰ï¸ <a href={`mailto:${s.correo||''}`}>{s.correo||'â€”'}</a></div>              {(s.director_nombre || s.director_apellido) ? (
+                <div>ðŸ‘¤ Director: {(s.director_nombre||'') + ' ' + (s.director_apellido||'')}</div>
               ) : null}
               {s.director_email ? (
-                <div>✉️ Director: <a href={`mailto:${s.director_email}`}>{s.director_email}</a></div>
+                <div>âœ‰ï¸ Director: <a href={`mailto:${s.director_email}`}>{s.director_email}</a></div>
               ) : null}
             </div>
             <div className="row card-actions" style={{gap:8}}>
               <button className="secondary" onClick={()=>toggleEstado(s.id)}>{s.estado==='contactado'?'Marcar no contactado':'Marcar contactado'}</button>
-              <button onClick={()=> setDetailId(s.id)}>🔎 Ver detalle</button>
-              <button className="danger" onClick={()=>remove(s.id)}>🗑️ Eliminar</button>
+              <button onClick={()=> setDetailId(s.id)}>ðŸ”Ž Ver detalle</button>
+              <button className="danger" onClick={()=>remove(s.id)}>ðŸ—‘ï¸ Eliminar</button>
             </div>
           </div>
         ))}
@@ -236,19 +231,19 @@ export default function Page(){
         <div className="grid" style={{gridTemplateColumns:'1fr 1fr', gap:8}}>
           <label>Nombre colegio
             <select value={mapping.nombre} onChange={e=>setMapping({...mapping, nombre:e.target.value})}>
-              <option value="">— Ninguno —</option>
+              <option value="">â€” Ninguno â€”</option>
               {headers.map(h=> <option key={h} value={h}>{h}</option>)}
             </select>
           </label>
           <label>Curso (opcional)
             <select value={mapping.curso} onChange={e=>setMapping({...mapping, curso:e.target.value})}>
-              <option value="">— Ninguno —</option>
+              <option value="">â€” Ninguno â€”</option>
               {headers.map(h=> <option key={h} value={h}>{h}</option>)}
             </select>
           </label>
-          <label>Código colegio (opcional)
+          <label>CÃ³digo colegio (opcional)
             <select value={mapping.codigo} onChange={e=>setMapping({...mapping, codigo:e.target.value})}>
-              <option value="">— Ninguno —</option>
+              <option value="">â€” Ninguno â€”</option>
               {headers.map(h=> <option key={h} value={h}>{h}</option>)}
             </select>
           </label>
@@ -266,7 +261,7 @@ export default function Page(){
     <ConfirmDialog
       open={Boolean(confirmSchoolId)}
       title="Eliminar colegio"
-      description="¿Seguro que deseas eliminar este colegio y todos sus datos asociados?"
+      description="Â¿Seguro que deseas eliminar este colegio y todos sus datos asociados?"
       confirmText="Eliminar"
       onCancel={()=> setConfirmSchoolId('')}
       onConfirm={confirmRemoveSchool}
@@ -274,7 +269,7 @@ export default function Page(){
     <ConfirmDialog
       open={Boolean(confirmApptId)}
       title="Eliminar agendamiento"
-      description="¿Seguro que deseas eliminar este agendamiento?"
+      description="Â¿Seguro que deseas eliminar este agendamiento?"
       confirmText="Eliminar"
       onCancel={()=> setConfirmApptId('')}
       onConfirm={confirmDeleteAppt}
