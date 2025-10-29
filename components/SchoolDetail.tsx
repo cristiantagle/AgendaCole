@@ -190,7 +190,7 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
                 <div className="item" key={c.id}>
                   <div>
                     <div style={{fontWeight:600}}>{c.curso}</div>
-                    <div className="meta">ID: {c.id}</div>
+                    
                   </div>
                   <div style={{display:'flex', gap:8}}>
                     <button onClick={()=>onOpenCourse(c.id)}>🗓️ Agenda</button>
