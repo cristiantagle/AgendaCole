@@ -7,6 +7,7 @@ import { toast } from '@/lib/toast';
 import SchoolDetail from '@/components/SchoolDetail';
 import CourseAgenda from '@/components/CourseAgenda';
 import AddSchoolModal from '@/components/AddSchoolModal';
+import { Building2, Phone, Globe, Mail, PhoneCall, Navigation, Users, CheckCircle2, Circle } from 'lucide-react';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
 type School = {
@@ -132,7 +133,7 @@ export default function Page(){
 
   return (
     <>
-    <div className="grid">
+    <div className="container grid">
       {/* Próximos agendamientos */}
       <div className="card" style={{padding:14}}>
         <div className="row" style={{justifyContent:'space-between'}}>
@@ -269,6 +270,8 @@ export default function Page(){
     </>
   );
 }
+
+
 
 
 
