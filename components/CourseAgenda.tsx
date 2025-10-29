@@ -40,7 +40,8 @@ export default function CourseAgenda({ courseId, open, onClose }: { courseId:str
     const r = await fetch(`/api/appointments/course/${courseId}`, { method:'POST', body: JSON.stringify({ fecha, hora, descripcion, observaciones }), headers: token? { Authorization: `Bearer ${token}` } : {} });
     if (r.status === 409) {
       const data = await r.json();
-      setConflict({ items: (data.conflicts||[]), allowed: Boolean(data.allowedForce) });
+      const items = (data.conflicts||[]).map((c:any)=> ({ ...c, colegio: schoolName || c.colegio }));
+      setConflict({ items, allowed: Boolean(data.allowedForce) });
       setConflictOpen(true);
       return;
     }

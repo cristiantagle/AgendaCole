@@ -69,7 +69,8 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
     const r = await fetch(`/api/appointments/school/${s.id}`, { method:'POST', body: JSON.stringify({ fecha, hora, tipo, descripcion, observaciones }), headers: token? { Authorization: `Bearer ${token}` } : {} });
     if (r.status === 409) {
       const data = await r.json();
-      setConflict({ items: (data.conflicts||[]), allowed: Boolean(data.allowedForce) });
+      const items = (data.conflicts||[]).map((c:any)=> ({ ...c, colegio: (s?.nombre)|| c.colegio }));
+      setConflict({ items, allowed: Boolean(data.allowedForce) });
       setConflictOpen(true);
       return;
     }
