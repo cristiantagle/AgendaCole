@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/lib/supabase';
+﻿import { supabaseServer } from '@/lib/supabase';
 import * as XLSX from 'xlsx';
 
 export const runtime = 'nodejs';
@@ -62,6 +62,12 @@ export async function POST(req: Request) {
     const { data: ex, error: e1 } = await s.from('colegios').select('*').ilike('nombre', nombre).limit(1);
     if (e1) return Response.json({ error: e1.message }, { status: 400 });
     let school = ex?.[0];
+    // Si no se encontr� por nombre y viene c�digo, intentar por c�digo de colegio
+    if (!school && codigo) {
+      const { data: exC, error: eC } = await s.from('colegios').select('*').eq('codigo_colegio', codigo).limit(1);
+      if (eC) return Response.json({ error: eC.message }, { status: 400 });
+      school = exC?.[0] || null;
+    }
     if (!school) {
       const { data: ins, error: e2 } = await s.from('colegios').insert({
         id: crypto.randomUUID(),
@@ -80,9 +86,10 @@ export async function POST(req: Request) {
     } else {
       // Actualizar campos vacíos con información del Excel
       const patch: any = {};
+      if (school.nombre !== nombre) patch.nombre = nombre;
       if (telefono) patch.telefono = telefono; // sobrescribe si viene del Excel
       if (!school.correo && correo) patch.correo = correo;
-      if (!school.codigo_colegio && codigo) patch.codigo_colegio = codigo;
+      if (codigo && school.codigo_colegio !== codigo) patch.codigo_colegio = codigo;
       if (!school.pagina_web && pagina) patch.pagina_web = pagina;
       if (!school.director_nombre && nombreDirector) patch.director_nombre = nombreDirector;
       if (!school.director_apellido && apellidoDirector) patch.director_apellido = apellidoDirector;
@@ -104,4 +111,6 @@ export async function POST(req: Request) {
 
   return Response.json({ ok: true, rows: rows.length });
 }
+
+
 
