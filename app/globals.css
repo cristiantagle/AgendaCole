@@ -26,8 +26,8 @@ button:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(37,99,235,.2)
 .btn.secondary{background:#ffffff;color:var(--text);border:1px solid var(--card-border)}
 .btn.ghost{background:#f8fafc;color:#0f172a;border:1px solid var(--card-border)}
 .btn.danger{background:#ef4444;color:#fff}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
-.card{background:var(--card);border:1px solid var(--card-border);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 4px 12px rgba(15,23,42,.06)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;align-items:stretch}
+.card{background:var(--card);border:1px solid var(--card-border);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 4px 12px rgba(15,23,42,.06);min-height:280px}
 .card:hover{box-shadow:0 10px 30px rgba(15,23,42,.12)}
 .row{display:flex;gap:10px;align-items:center;justify-content:space-between}
 .meta{color:var(--muted);font-size:13px}
@@ -56,3 +56,5 @@ button:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(37,99,235,.2)
 .badge.type.visita{border-color:#99f6e4;background:#ecfeff;color:#0f766e}
 
 .card .row > .meta{background:var(--chip);border:1px solid var(--card-border);padding:6px 10px;border-radius:999px;color:var(--text)}
+
+.card-actions{margin-top:auto}

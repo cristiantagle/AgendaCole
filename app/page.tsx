@@ -220,7 +220,7 @@ export default function Page(){
                 <div>✉️ Director: <a href={`mailto:${s.director_email}`}>{s.director_email}</a></div>
               ) : null}
             </div>
-            <div className="row" style={{gap:8}}>
+            <div className="row card-actions" style={{gap:8}}>
               <button className="secondary" onClick={()=>toggleEstado(s.id)}>{s.estado==='contactado'?'Marcar no contactado':'Marcar contactado'}</button>
               <button onClick={()=> setDetailId(s.id)}>🔎 Ver detalle</button>
               <button className="danger" onClick={()=>remove(s.id)}>🗑️ Eliminar</button>
