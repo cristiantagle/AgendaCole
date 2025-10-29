@@ -78,6 +78,7 @@ export default function Page(){
   const [addOpen, setAddOpen] = useState<boolean>(false);
   const [confirmSchoolId, setConfirmSchoolId] = useState<string>('');
   const [confirmApptId, setConfirmApptId] = useState<string>('');
+  const [editAppt, setEditAppt] = useState<{ id:string; fecha:string; hora:string }|null>(null);
   async function confirmDeleteAppt(){
     if (!confirmApptId) return;
     await fetch(`/api/appointments/${confirmApptId}`, { method:'DELETE', headers: token? { Authorization: `Bearer ${token}` } : {} });
@@ -281,6 +282,7 @@ export default function Page(){
     </>
   );
 }
+
 
 
 
