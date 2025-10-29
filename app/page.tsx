@@ -168,9 +168,7 @@ export default function Page(){
               {s.pagina_web ? (
                 <div>🌐 <a target="_blank" href={String(s.pagina_web)}>{s.pagina_web}</a></div>
               ) : null}
-              <div>✉️ <a href={`mailto:${s.correo||''}`}>{s.correo||'—'}</a></div>
-              {s.codigo_colegio ? (<div>🧾 Código: {s.codigo_colegio}</div>) : null}
-              {(s.director_nombre || s.director_apellido) ? (
+              <div>✉️ <a href={`mailto:${s.correo||''}`}>{s.correo||'—'}</a></div>\n              {(s.director_nombre || s.director_apellido) ? (
                 <div>👤 Director: {(s.director_nombre||'') + ' ' + (s.director_apellido||'')}</div>
               ) : null}
               {s.director_email ? (
@@ -230,5 +228,6 @@ export default function Page(){
     </>
   );
 }
+
 
 
