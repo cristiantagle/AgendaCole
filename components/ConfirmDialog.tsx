@@ -1,4 +1,5 @@
 "use client";
+import { ReactNode } from 'react';
 import { Modal } from '@/components/Modal';
 
 export default function ConfirmDialog({
@@ -11,7 +12,7 @@ export default function ConfirmDialog({
 }: {
   open: boolean;
   title?: string;
-  description?: string | JSX.Element;
+  description?: ReactNode;
   confirmText?: string;
   onCancel: () => void;
   onConfirm: () => void | Promise<void>;
@@ -22,4 +23,3 @@ export default function ConfirmDialog({
     </Modal>
   );
 }
-
