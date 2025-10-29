@@ -57,3 +57,5 @@ button:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(37,99,235,.2)
 .badge.type{border-color:#c7d2fe;background:#eef2ff;color:#3730a3}
 .badge.type.llamada{border-color:#fed7aa;background:#fff7ed;color:#7c2d12}
 .badge.type.visita{border-color:#99f6e4;background:#ecfeff;color:#0f766e}
+
+.card .row > .meta{background:var(--chip);border:1px solid var(--card-border);padding:6px 10px;border-radius:999px;color:var(--text)}
