@@ -32,6 +32,12 @@ button:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(34,197,94,.25
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media(max-width:720px){.toolbar{grid-template-columns:1fr}}
 .modal-card{max-height:85vh; overflow-y:auto}
+.modal-card{scrollbar-gutter: stable}
+/* Pretty scrollbars */
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-track{background:#0b1220;border-radius:10px}
+*::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#334155,#1f2937);border-radius:10px;border:2px solid #0b1220}
+*{scrollbar-color:#374151 #0b1220;scrollbar-width:thin}
 .conflict-box{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:10px}
 .conflict-box ul{margin:6px 0 0 18px;padding:0}
 .conflict-box li{margin:2px 0}

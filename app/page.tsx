@@ -21,6 +21,7 @@ type School = {
 
 export default function Page(){
   const [schools, setSchools] = useState<School[]>([]);
+  const [upcoming, setUpcoming] = useState<any[]>([]);
   const [q, setQ] = useState('');
   const [estado, setEstado] = useState<'todos'|'contactado'|'no_contactado'>('todos');
   const [sort, setSort] = useState<'nombre'|'estado'>('nombre');
@@ -34,6 +35,11 @@ export default function Page(){
     const json = await res.json(); setSchools(json.data||[]); setLoading(false);
   }
   useEffect(()=>{ load(); }, [q, estado, sort]);
+  async function loadUpcoming(){
+    const r = await fetch(`/api/appointments?limit=50`, { headers: token? { Authorization: `Bearer ${token}` } : {} });
+    const j = await r.json(); setUpcoming(j.data||[]);
+  }
+  useEffect(()=>{ loadUpcoming(); }, []);
 
   // Realtime refresh
   useEffect(()=>{
@@ -127,6 +133,41 @@ export default function Page(){
   return (
     <>
     <div className="grid">
+      {/* Próximos agendamientos */}
+      <div className="card" style={{padding:14}}>
+        <div className="row" style={{justifyContent:'space-between'}}>
+          <h3 style={{margin:0}}>Próximos agendamientos</h3>
+        </div>
+        <div className="list">
+          {upcoming.map(a => (
+            <div className="item" key={a.id}>
+              <div>
+                <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                  <span className={`badge type ${a.tipo}`}>{a.tipo==='llamada'?'Llamada':'Visita'}</span>
+                  <strong>{a.colegio}</strong>
+                  {a.curso ? <span className="badge course">Curso: {a.curso}</span> : null}
+                  <span className="meta">{a.fecha} {a.hora}</span>
+                </div>
+                <div className="meta">{a.descripcion||''}</div>
+              </div>
+              <div className="row" style={{gap:6}}>
+                <button className="secondary" onClick={async ()=>{
+                  const fecha = prompt('Nueva fecha (YYYY-MM-DD)', a.fecha)||a.fecha;
+                  const hora = prompt('Nueva hora (HH:MM:SS)', a.hora)||a.hora;
+                  await fetch(`/api/appointments/${a.id}`, { method:'PATCH', body: JSON.stringify({ fecha, hora }), headers: { 'Content-Type':'application/json', ...(token? { Authorization: `Bearer ${token}` } : {}) } });
+                  loadUpcoming();
+                }}>Editar</button>
+                <button className="danger" onClick={async ()=>{
+                  if (!confirm('Eliminar agendamiento?')) return;
+                  await fetch(`/api/appointments/${a.id}`, { method:'DELETE', headers: token? { Authorization: `Bearer ${token}` } : {} });
+                  loadUpcoming();
+                }}>Eliminar</button>
+              </div>
+            </div>
+          ))}
+          {!upcoming.length && <div className="meta">Sin agendamientos próximos</div>}
+        </div>
+      </div>
       <div className="toolbar">
         <input placeholder="Buscar por nombre, código, director, teléfono, correo o web" value={q} onChange={e=>setQ(e.target.value)} />
         <select value={estado} onChange={e=>setEstado(e.target.value as any)}>
