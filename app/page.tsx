@@ -275,7 +275,7 @@ export default function Page(){
           </label>
           <label>Código colegio (opcional)
             <select value={mapping.codigo} onChange={e=>setMapping({...mapping, codigo:e.target.value})}>
-              <option value=""">— Ninguno —</option>
+              <option value="">— Ninguno —</option>
               {headers.map(h=> <option key={h} value={h}>{h}</option>)}
             </select>
           </label>
