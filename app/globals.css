@@ -39,6 +39,7 @@ button:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(37,99,235,.2)
 @media(max-width:720px){.toolbar{grid-template-columns:1fr}}
 .modal-card{max-height:85vh;overflow-y:auto;background:#ffffff;color:#0f172a;border:1px solid var(--card-border);border-radius:18px}
 .modal-card{scrollbar-gutter:stable}
+.modal-card{scrollbar-gutter:stable}
 /* Scrollbars */
 *::-webkit-scrollbar{width:10px;height:10px}
 *::-webkit-scrollbar-track{background:#eef2f7;border-radius:10px}

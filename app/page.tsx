@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import { useEffect, useState } from 'react';
 import * as XLSX from 'xlsx';
 import { supabaseBrowser } from '@/lib/supabase-browser';
@@ -7,7 +7,6 @@ import { toast } from '@/lib/toast';
 import SchoolDetail from '@/components/SchoolDetail';
 import CourseAgenda from '@/components/CourseAgenda';
 import AddSchoolModal from '@/components/AddSchoolModal';
-import { Building2, Phone, Globe, Mail, PhoneCall, Navigation, Users, CheckCircle2, Circle } from 'lucide-react';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
 type School = {
@@ -18,6 +17,12 @@ type School = {
   director_nombre?: string | null;
   director_apellido?: string | null;
   director_email?: string | null;
+};
+
+const absWeb = (url?: string|null) => {
+  const u = String(url||'').trim();
+  if (!u) return '';
+  return /^https?:\/\//i.test(u) ? u : `https://${u}`;
 };
 
 export default function Page(){
@@ -60,14 +65,6 @@ export default function Page(){
 
   function remove(id:string){ setConfirmSchoolId(id); }
 
-  async function addSchool(){
-    const nombre = prompt('Nombre del colegio'); if(!nombre) return;
-    const direccion = prompt('Dirección')||''; const telefono = prompt('Teléfono')||''; const correo = prompt('Correo')||'';
-    const r = await fetch('/api/schools', { method:'POST', body: JSON.stringify({ nombre, direccion, telefono, correo, estado:'no_contactado' }), headers: token? { Authorization: `Bearer ${token}` } : {} });
-    if(!r.ok){ toast('Error al agregar colegio', 'error'); return; }
-    load();
-  }
-
   // Import wizard state
   const [impOpen, setImpOpen] = useState(false);
   const [impFile, setImpFile] = useState<File|null>(null);
@@ -78,6 +75,7 @@ export default function Page(){
   const [addOpen, setAddOpen] = useState<boolean>(false);
   const [confirmSchoolId, setConfirmSchoolId] = useState<string>('');
   const [confirmApptId, setConfirmApptId] = useState<string>('');
+
   async function confirmDeleteAppt(){
     if (!confirmApptId) return;
     await fetch(`/api/appointments/${confirmApptId}`, { method:'DELETE', headers: token? { Authorization: `Bearer ${token}` } : {} });
@@ -104,25 +102,26 @@ export default function Page(){
       // auto-map best guess
       const lc = (s:string)=> s.toLowerCase();
       const find = (arr:string[], cands:string[])=>{
-        // Prefer exact match first
         for (const c of cands) {
           const exact = arr.find(h => lc(h) === lc(c)); if (exact) return exact;
         }
-        // Fallback to includes
-        return arr.find(h=> cands.some(c=> lc(h).includes(lc(c)))) || '';
+        return arr.find(h => cands.some(c => lc(h).includes(lc(c)))) || '';
       };
       setMapping({
-        nombre: find(hdrs, ['colegio','nombre','nombre colegio','nombre establecimiento','establecimiento','school']),
-        curso: find(hdrs, ['curso','grado','course','class']),
-        codigo: find(hdrs, ['codigo colegio','código colegio','codigo','código','rbd'])
+        nombre: find(hdrs, ['colegio','nombre','establecimiento','school']),
+        curso: find(hdrs, ['curso','grado']),
+        codigo: find(hdrs, ['código colegio','codigo colegio','rbd'])
       });
-      setImpFile(file); setImpOpen(true);
-    }catch{ toast('No se pudo previsualizar el archivo', 'error'); }
+      setImpFile(file);
+      setImpOpen(true);
+    } catch (e){
+      toast('No se pudo leer el archivo', 'error');
+    }
   }
-
   async function doImport(){
-    if (!impFile) return;
-    const fd = new FormData(); fd.append('file', impFile); fd.append('mapping', JSON.stringify(mapping));
+    if (!impFile) return; const fd = new FormData();
+    fd.append('file', impFile);
+    fd.append('mapping', JSON.stringify(mapping||{}));
     const r = await fetch('/api/import', { method:'POST', body: fd, headers: token? { Authorization: `Bearer ${token}` } : {} });
     if (!r.ok) { toast('Error al importar', 'error'); return; }
     toast('Importación completada', 'success');
@@ -188,14 +187,14 @@ export default function Page(){
       <div className="row" style={{justifyContent:'space-between'}}>
         <h2 style={{margin:0}}>Colegios</h2>
         <div style={{display:'flex', gap:8}}>
-          <button onClick={()=> setAddOpen(true)}>➕ Agregar colegio</button>
+          <button onClick={()=> setAddOpen(true)}>Agregar colegio</button>
           <label className="secondary" style={{padding:'10px 12px', borderRadius:8, cursor:'pointer'}}>
             Importar Excel
             <input type="file" accept=".xlsx,.xls,.csv" style={{display:'none'}} onChange={async e=>{
               const file = e.target.files?.[0]; if(!file) return; await openImport(file);
             }} />
           </label>
-          <button onClick={exportColegios}>⬇️ Exportar</button>
+          <button onClick={exportColegios}>Exportar</button>
         </div>
       </div>
 
@@ -208,22 +207,33 @@ export default function Page(){
               <h3 style={{margin:0, fontSize:16}}>{s.nombre}</h3>
               <span className="meta">{s.estado==='contactado'?'Contactado':'No contactado'}</span>
             </div>
-            <div className="meta">
-              <div>📞 <a href={`tel:${s.telefono||''}`}>{s.telefono||'—'}</a></div>
-              {s.pagina_web ? (
-                <div>🌐 <a target="_blank" href={(String(s.pagina_web||'').startsWith('http')? String(s.pagina_web): `https://${String(s.pagina_web)}`)}>{s.pagina_web}</a></div>
+            <div className="grid" style={{gap:6}}>
+              {s.telefono ? (
+                <div className="row" style={{gap:8,justifyContent:'flex-start'}}>
+                  <a href={`tel:${s.telefono}`}>{s.telefono}</a>
+                </div>
               ) : null}
-              <div>✉️ <a href={`mailto:${s.correo||''}`}>{s.correo||'—'}</a></div>              {(s.director_nombre || s.director_apellido) ? (
-                <div>👤 Director: {(s.director_nombre||'') + ' ' + (s.director_apellido||'')}</div>
+              {s.pagina_web ? (
+                <div className="row" style={{gap:8,justifyContent:'flex-start'}}>
+                  <a target="_blank" rel="noreferrer" href={absWeb(s.pagina_web)}>{s.pagina_web}</a>
+                </div>
+              ) : null}
+              {s.correo ? (
+                <div className="row" style={{gap:8,justifyContent:'flex-start'}}>
+                  <a href={`mailto:${s.correo}`}>{s.correo}</a>
+                </div>
+              ) : null}
+              {(s.director_nombre || s.director_apellido) ? (
+                <div className="meta">Director: {(s.director_nombre||'') + ' ' + (s.director_apellido||'')}</div>
               ) : null}
               {s.director_email ? (
-                <div>✉️ Director: <a href={`mailto:${s.director_email}`}>{s.director_email}</a></div>
+                <div className="meta">Director: <a href={`mailto:${s.director_email}`}>{s.director_email}</a></div>
               ) : null}
             </div>
             <div className="row card-actions" style={{gap:8}}>
               <button className="secondary" onClick={()=>toggleEstado(s.id)}>{s.estado==='contactado'?'Marcar no contactado':'Marcar contactado'}</button>
-              <button onClick={()=> setDetailId(s.id)}>🔎 Ver detalle</button>
-              <button className="danger" onClick={()=>remove(s.id)}>🗑️ Eliminar</button>
+              <button onClick={()=> setDetailId(s.id)}>Ver detalle</button>
+              <button className="danger" onClick={()=>remove(s.id)}>Eliminar</button>
             </div>
           </div>
         ))}
@@ -281,9 +291,4 @@ export default function Page(){
     </>
   );
 }
-
-
-
-
-
 
