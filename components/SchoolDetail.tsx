@@ -166,7 +166,9 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
                   </div>
                   <div className="meta">
                     <span className={`badge type ${a.tipo}`}>{a.tipo==='llamada'?'Llamada':'Visita'}</span>
-                    {(a as any).curso ? <span className="badge course">Curso: {(a as any).curso}</span> : <span className="badge col">Colegio</span>}
+                    {(a as any).curso
+                      ? <span className="badge course">Curso: {(a as any).curso}</span>
+                      : <span className="badge col">{s?.nombre || 'Colegio'}</span>}
                   </div>
                 </div>
               ))}
