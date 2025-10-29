@@ -9,6 +9,7 @@ import CourseAgenda from '@/components/CourseAgenda';
 import AddSchoolModal from '@/components/AddSchoolModal';
 import { Building2, Phone, Globe, Mail, PhoneCall, Navigation, Users, CheckCircle2, Circle } from 'lucide-react';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import EditAppointmentModal from '@/components/EditAppointmentModal';
 
 type School = {
   id:string; nombre:string;
@@ -78,6 +79,7 @@ export default function Page(){
   const [addOpen, setAddOpen] = useState<boolean>(false);
   const [confirmSchoolId, setConfirmSchoolId] = useState<string>('');
   const [confirmApptId, setConfirmApptId] = useState<string>('');
+  const [editAppt, setEditAppt] = useState<{id:string; fecha:string; hora:string}|null>(null);
   async function confirmDeleteAppt(){
     if (!confirmApptId) return;
     await fetch(`/api/appointments/${confirmApptId}`, { method:'DELETE', headers: token? { Authorization: `Bearer ${token}` } : {} });
@@ -159,12 +161,7 @@ export default function Page(){
                 <div className="meta">{a.descripcion||''}</div>
               </div>
               <div className="row" style={{gap:6}}>
-                <button className="secondary" onClick={async ()=>{
-                  const fecha = prompt('Nueva fecha (YYYY-MM-DD)', a.fecha)||a.fecha;
-                  const hora = prompt('Nueva hora (HH:MM:SS)', a.hora)||a.hora;
-                  await fetch(`/api/appointments/${a.id}`, { method:'PATCH', body: JSON.stringify({ fecha, hora }), headers: { 'Content-Type':'application/json', ...(token? { Authorization: `Bearer ${token}` } : {}) } });
-                  loadUpcoming();
-                }}>Editar</button>
+                <button className="secondary" onClick={()=> setEditAppt({ id:a.id, fecha:a.fecha, hora:a.hora })}>Editar</button>
                 <button className="danger" onClick={()=> setConfirmApptId(a.id)}>Eliminar</button>
               </div>
             </div>
@@ -277,6 +274,12 @@ export default function Page(){
       confirmText="Eliminar"
       onCancel={()=> setConfirmApptId('')}
       onConfirm={confirmDeleteAppt}
+    />
+    <EditAppointmentModal
+      open={Boolean(editAppt)}
+      appt={editAppt}
+      onClose={()=> setEditAppt(null)}
+      onSaved={loadUpcoming}
     />
     </>
   );
