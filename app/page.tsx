@@ -7,6 +7,7 @@ import { toast } from '@/lib/toast';
 import SchoolDetail from '@/components/SchoolDetail';
 import CourseAgenda from '@/components/CourseAgenda';
 import AddSchoolModal from '@/components/AddSchoolModal';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 type School = {
   id:string; nombre:string;
@@ -50,11 +51,7 @@ export default function Page(){
     load();
   }
 
-  async function remove(id:string){
-    if (!confirm('Eliminar colegio y datos asociados?')) return;
-    await fetch(`/api/schools/${id}`, { method:'DELETE', headers: token? { Authorization: `Bearer ${token}` } : {} });
-    load();
-  }
+  function remove(id:string){ setConfirmSchoolId(id); }
 
   async function addSchool(){
     const nombre = prompt('Nombre del colegio'); if(!nombre) return;
@@ -72,6 +69,15 @@ export default function Page(){
   const [detailId, setDetailId] = useState<string>('');
   const [courseModal, setCourseModal] = useState<string>('');
   const [addOpen, setAddOpen] = useState<boolean>(false);
+  const [confirmSchoolId, setConfirmSchoolId] = useState<string>('');
+  async function confirmRemoveSchool(){
+    if (!confirmSchoolId) return;
+    const r = await fetch(`/api/schools/${confirmSchoolId}`, { method:'DELETE', headers: token? { Authorization: `Bearer ${token}` } : {} });
+    setConfirmSchoolId('');
+    if (!r.ok) { toast('No se pudo eliminar el colegio', 'error'); return; }
+    toast('Colegio eliminado', 'success');
+    load();
+  }
 
   async function openImport(file: File){
     try{
@@ -206,6 +212,16 @@ export default function Page(){
     />
     <CourseAgenda courseId={courseModal} open={Boolean(courseModal)} onClose={()=> setCourseModal('')} />
     <AddSchoolModal open={addOpen} onClose={()=> setAddOpen(false)} onAdded={()=> load()} />
+    <ConfirmDialog
+      open={Boolean(confirmSchoolId)}
+      title="Eliminar colegio"
+      description="¿Seguro que deseas eliminar este colegio y todos sus datos asociados?"
+      confirmText="Eliminar"
+      onCancel={()=> setConfirmSchoolId('')}
+      onConfirm={confirmRemoveSchool}
+    />
     </>
   );
 }
+
+

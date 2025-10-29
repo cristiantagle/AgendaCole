@@ -10,6 +10,8 @@ export default function CourseAgenda({ courseId, open, onClose }: { courseId:str
   type ConflictItem = { fecha:string; hora:string; tipo:string; colegio:string; curso?:string };
   const [conflict, setConflict] = useState<{items:ConflictItem[]; allowed:boolean}>({items:[], allowed:false});
   const [schoolId, setSchoolId] = useState<string>('');
+  const [schoolName, setSchoolName] = useState<string>('');
+  const [courseName, setCourseName] = useState<string>('');
   const [conflictOpen, setConflictOpen] = useState(false);
   const token = typeof window!=='undefined' ? localStorage.getItem('sb_token')||'' : '';
 
@@ -19,7 +21,14 @@ export default function CourseAgenda({ courseId, open, onClose }: { courseId:str
       fetch(`/api/courses/${courseId}`, { headers: token? { Authorization: `Bearer ${token}` } : {} })
     ]);
     const j = await r.json(); setAgenda(j.data||[]);
-    const meta = await m.json(); setSchoolId(meta?.data?.id_colegio || '');
+    const meta = await m.json();
+    const sid = meta?.data?.id_colegio || '';
+    setSchoolId(sid);
+    setCourseName(meta?.data?.curso || '');
+    if (sid) {
+      const sr = await fetch(`/api/schools/${sid}`, { headers: token? { Authorization: `Bearer ${token}` } : {} });
+      const sj = await sr.json(); setSchoolName(sj?.data?.nombre || '');
+    }
   }
   useEffect(()=>{ if(open && courseId) load(); }, [open, courseId]);
 
@@ -43,6 +52,7 @@ export default function CourseAgenda({ courseId, open, onClose }: { courseId:str
   return (
     <>
     <Modal isOpen={open} title="Agenda del curso" onClose={onClose}>
+      <div className="meta">Colegios &gt; {schoolName || 'Colegio'} &gt; Curso: {courseName || ''}</div>
       <div className="grid" style={{gap:10}}>
         <div style={{display:'grid', gridTemplateColumns:'1fr', gap:10}}>
           <input id="cgFecha" type="date" />
@@ -58,6 +68,7 @@ export default function CourseAgenda({ courseId, open, onClose }: { courseId:str
               <div>
                 <div><strong>{a.tipo}</strong> • {a.fecha} {a.hora}</div>
                 <div className="meta">{a.descripcion||''}</div>
+                <div className="meta"><span className={`badge type ${a.tipo}`}>{a.tipo==='llamada'?'Llamada':'Visita'}</span></div>
               </div>
             </div>
           ))}
@@ -91,6 +102,7 @@ export default function CourseAgenda({ courseId, open, onClose }: { courseId:str
               <li key={i}>
                 <span className="badge col">{c.colegio}</span>
                 {c.curso ? <span className="badge course">{c.curso}</span> : null}
+                <span className={`badge type ${c.tipo}`}>{c.tipo==='llamada'?'Llamada':'Visita'}</span>
                 <span className="meta"> {c.fecha} {c.hora} — {c.tipo}</span>
               </li>
             ))}

@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Modal } from '@/components/Modal';
 import { toast } from '@/lib/toast';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 type School = {
   id:string; nombre:string;
@@ -26,6 +27,8 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
   type ConflictItem = { fecha:string; hora:string; tipo:string; colegio:string; curso?:string };
   const [conflict, setConflict] = useState<{items:ConflictItem[]; allowed:boolean}>({items:[], allowed:false});
   const [conflictOpen, setConflictOpen] = useState(false);
+  const [confirmCourseId, setConfirmCourseId] = useState<string>('');
+  const [confirmCommentId, setConfirmCommentId] = useState<string>('');
 
   async function loadAll(){
     const [a,b,c,d] = await Promise.all([
@@ -84,9 +87,11 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
     toast('Curso agregado', 'success');
     loadAll();
   }
-  async function deleteCourse(id:string){
-    if (!confirm('Eliminar curso?')) return;
-    const r = await fetch(`/api/courses/${id}`, { method:'DELETE', headers: token? { Authorization: `Bearer ${token}` } : {} });
+  async function deleteCourse(id:string){ setConfirmCourseId(id); }
+  async function confirmDeleteCourse(){
+    if (!confirmCourseId) return;
+    const r = await fetch(`/api/courses/${confirmCourseId}`, { method:'DELETE', headers: token? { Authorization: `Bearer ${token}` } : {} });
+    setConfirmCourseId('');
     if (!r.ok) { toast('No se pudo eliminar el curso', 'error'); return; }
     toast('Curso eliminado', 'success');
     loadAll();
@@ -100,9 +105,11 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
     toast('Comentario agregado', 'success');
     loadAll();
   }
-  async function delComment(id:string){
-    if (!confirm('Eliminar comentario?')) return;
-    const r = await fetch(`/api/comments/${id}`, { method:'DELETE', headers: token? { Authorization: `Bearer ${token}` } : {} });
+  async function delComment(id:string){ setConfirmCommentId(id); }
+  async function confirmDeleteComment(){
+    if (!confirmCommentId) return;
+    const r = await fetch(`/api/comments/${confirmCommentId}`, { method:'DELETE', headers: token? { Authorization: `Bearer ${token}` } : {} });
+    setConfirmCommentId('');
     if (!r.ok) { toast('No se pudo eliminar el comentario', 'error'); return; }
     toast('Comentario eliminado', 'success');
     loadAll();
@@ -110,6 +117,7 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
 
   return (
     <Modal isOpen={open} title={s?.nombre || 'Colegio'} onClose={onClose}>
+      <div className="meta">Colegios &gt; {s?.nombre || 'Colegio'}</div>
       {!s ? <div className="meta">Cargando…</div> : (
         <div className="grid" style={{gap:12}}>
           {/* Datos colegio */}
@@ -155,7 +163,10 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
                     <div><strong>{a.tipo}</strong> • {a.fecha} {a.hora}</div>
                     <div className="meta">{a.descripcion||''}</div>
                   </div>
-                  <div className="meta">{(a as any).curso ? <span className="badge course">Curso: {(a as any).curso}</span> : <span className="badge col">Colegio</span>}</div>
+                  <div className="meta">
+                    <span className={`badge type ${a.tipo}`}>{a.tipo==='llamada'?'Llamada':'Visita'}</span>
+                    {(a as any).curso ? <span className="badge course">Curso: {(a as any).curso}</span> : <span className="badge col">Colegio</span>}
+                  </div>
                 </div>
               ))}
               {!agenda.length && <div className="meta">Sin agendamientos</div>}
@@ -235,6 +246,7 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
                 <li key={i}>
                   <span className="badge col">{c.colegio}</span>
                   {c.curso ? <span className="badge course">{c.curso}</span> : null}
+                  <span className={`badge type ${c.tipo}`}>{c.tipo==='llamada'?'Llamada':'Visita'}</span>
                   <span className="meta"> {c.fecha} {c.hora} — {c.tipo}</span>
                 </li>
               ))}
@@ -247,6 +259,23 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
           )}
         </div>
       </Modal>
+      <ConfirmDialog
+        open={Boolean(confirmCourseId)}
+        title="Eliminar curso"
+        description="¿Seguro que deseas eliminar este curso?"
+        confirmText="Eliminar"
+        onCancel={()=> setConfirmCourseId('')}
+        onConfirm={confirmDeleteCourse}
+      />
+      <ConfirmDialog
+        open={Boolean(confirmCommentId)}
+        title="Eliminar comentario"
+        description="¿Seguro que deseas eliminar este comentario?"
+        confirmText="Eliminar"
+        onCancel={()=> setConfirmCommentId('')}
+        onConfirm={confirmDeleteComment}
+      />
     </Modal>
   );
 }
+
