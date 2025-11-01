@@ -1,11 +1,10 @@
 export const metadata = {
   title: 'Agendamiento Colegios',
-  description: 'Gestión de colegios, cursos y agenda',
+  description: 'Gestion de colegios, cursos y agenda',
 };
 
 import './globals.css';
 
-import HeaderAuth from '@/components/HeaderAuth';
 import Toaster from '@/components/Toaster';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -23,7 +22,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </span>
             <h1>Agendamiento Colegios</h1>
           </div>
-          <HeaderAuth />
+          <nav className="topbar-nav desktop-nav" aria-label="Navegacion principal">
+            <a href="#colegios">Colegios</a>
+            <a href="#agenda">Proximos</a>
+            <a href="#importar">Importar</a>
+          </nav>
+          <details className="topbar-nav mobile-nav">
+            <summary aria-label="Abrir menu principal">
+              <span className="hamburger" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 6h16M4 12h16M4 18h16" stroke="#0f172a" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              </span>
+            </summary>
+            <div>
+              <a href="#colegios">Colegios</a>
+              <a href="#agenda">Proximos agendamientos</a>
+              <a href="#importar">Importar/Exportar</a>
+            </div>
+          </details>
         </header>
         <main className="container">{children}</main>
         <Toaster />
@@ -32,4 +49,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-

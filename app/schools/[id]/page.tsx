@@ -27,7 +27,7 @@ export default function SchoolPage(){
   const [conflict, setConflict] = useState<{list:string[]; allowed:boolean}>({list:[], allowed:false});
   const [conflictOpen, setConflictOpen] = useState(false);
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('sb_token')||'' : '';
+  const token = '';
 
   async function loadAll(){
     const [a,b,c,d] = await Promise.all([
@@ -230,3 +230,4 @@ export default function SchoolPage(){
     </>
   );
 }
+

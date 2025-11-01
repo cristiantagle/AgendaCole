@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 
-const getToken = () => (typeof window!=='undefined' ? localStorage.getItem('sb_token')||'' : '');
+const getToken = () => '';
 
 type Appointment = { id:string; tipo:'llamada'|'visita'; fecha:string; hora:string; descripcion?:string; observaciones?:string };
 
@@ -114,3 +114,4 @@ export default function CoursePage(){
   );
 }
 import { Modal } from '@/components/Modal';
+

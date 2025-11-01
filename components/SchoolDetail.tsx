@@ -12,9 +12,10 @@ type School = {
   director_nombre?: string | null;
   director_apellido?: string | null;
   director_email?: string | null;
+  direccion?: string | null;
 };
 type Course = { id:string; id_colegio:string; curso:string };
-type Appointment = { id:string; tipo:'llamada'|'visita'; fecha:string; hora:string; descripcion?:string; observaciones?:string };
+type Appointment = { id:string; tipo:'llamada'|'visita'; fecha:string; hora:string; descripcion?:string; Observaciones?:string };
 type Comment = { id:string; autor?:string; fecha:string; texto?:string };
 
 export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: { schoolId:string; open:boolean; onClose:()=>void; onOpenCourse:(courseId:string)=>void }){
@@ -22,7 +23,6 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
   const [courses, setCourses] = useState<Course[]>([]);
   const [agenda, setAgenda] = useState<Appointment[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
-  const token = typeof window !== 'undefined' ? localStorage.getItem('sb_token')||'' : '';
   const [saving, setSaving] = useState(false);
   type ConflictItem = { fecha:string; hora:string; tipo:string; colegio:string; curso?:string };
   const [conflict, setConflict] = useState<{items:ConflictItem[]; allowed:boolean}>({items:[], allowed:false});
@@ -32,10 +32,10 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
 
   async function loadAll(){
     const [a,b,c,d] = await Promise.all([
-      fetch(`/api/schools/${schoolId}`, { headers: token? { Authorization: `Bearer ${token}` } : {} }).then(r=>r.json()),
-      fetch(`/api/courses/school/${schoolId}`, { headers: token? { Authorization: `Bearer ${token}` } : {} }).then(r=>r.json()),
-      fetch(`/api/appointments/school/${schoolId}?combined=1`, { headers: token? { Authorization: `Bearer ${token}` } : {} }).then(r=>r.json()),
-      fetch(`/api/comments/school/${schoolId}`, { headers: token? { Authorization: `Bearer ${token}` } : {} }).then(r=>r.json()),
+      fetch(`/api/schools/${schoolId}`).then(r=>r.json()),
+      fetch(`/api/courses/school/${schoolId}`).then(r=>r.json()),
+      fetch(`/api/appointments/school/${schoolId}?combined=1`).then(r=>r.json()),
+      fetch(`/api/comments/school/${schoolId}`).then(r=>r.json()),
     ]);
     setS(a.data); setCourses(b.data||[]); setAgenda(c.data||[]); setComments(d.data||[]);
   }
@@ -52,7 +52,7 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
   async function save(){
     if (!s) return; setSaving(true);
     const { id, ...patch } = s as any;
-    const r = await fetch(`/api/schools/${id}`, { method:'PATCH', body: JSON.stringify(patch), headers: token? { Authorization: `Bearer ${token}` } : {} });
+    const r = await fetch(`/api/schools/${id}`, { method:'PATCH', body: JSON.stringify(patch) });
     setSaving(false);
     if (!r.ok) { toast('Error al guardar', 'error'); return; }
     toast('Cambios guardados', 'success');
@@ -65,8 +65,8 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
     const hora = (document.getElementById('sdHora') as HTMLInputElement)?.value;
     const tipo = (document.getElementById('sdTipo') as HTMLSelectElement)?.value as any;
     const descripcion = (document.getElementById('sdDesc') as HTMLInputElement)?.value || '';
-    const observaciones = (document.getElementById('sdObs') as HTMLInputElement)?.value || '';
-    const r = await fetch(`/api/appointments/school/${s.id}`, { method:'POST', body: JSON.stringify({ fecha, hora, tipo, descripcion, observaciones }), headers: token? { Authorization: `Bearer ${token}` } : {} });
+    const Observaciones = (document.getElementById('sdObs') as HTMLInputElement)?.value || '';
+    const r = await fetch(`/api/appointments/school/${s.id}`, { method:'POST', body: JSON.stringify({ fecha, hora, tipo, descripcion, Observaciones }) });
     if (r.status === 409) {
       const data = await r.json();
       const items = (data.conflicts||[]).map((c:any)=> ({ ...c, colegio: (s?.nombre)|| c.colegio }));
@@ -82,7 +82,7 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
   async function addCourse(){
     if (!s) return; const v = (document.getElementById('sdNewCurso') as HTMLInputElement)?.value.trim(); if(!v) return;
     const exists = courses.some(c => (c.curso||'').toLowerCase()===v.toLowerCase()); if (exists) return;
-    const r = await fetch(`/api/courses/school/${s.id}`, { method:'POST', body: JSON.stringify({ curso: v }), headers: token? { Authorization: `Bearer ${token}` } : {} });
+    const r = await fetch(`/api/courses/school/${s.id}`, { method:'POST', body: JSON.stringify({ curso: v }) });
     if (!r.ok) { toast('No se pudo agregar el curso', 'error'); return; }
     (document.getElementById('sdNewCurso') as HTMLInputElement).value='';
     toast('Curso agregado', 'success');
@@ -92,7 +92,7 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
   async function deleteCourse(id:string){ setConfirmCourseId(id); }
   async function confirmDeleteCourse(){
     if (!confirmCourseId) return;
-    const r = await fetch(`/api/courses/${confirmCourseId}`, { method:'DELETE', headers: token? { Authorization: `Bearer ${token}` } : {} });
+    const r = await fetch(`/api/courses/${confirmCourseId}`, { method:'DELETE' });
     setConfirmCourseId('');
     if (!r.ok) { toast('No se pudo eliminar el curso', 'error'); return; }
     toast('Curso eliminado', 'success');
@@ -104,7 +104,7 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
     const autor = (document.getElementById('sdAutor') as HTMLInputElement)?.value || '';
     const texto = (document.getElementById('sdTexto') as HTMLInputElement)?.value || '';
     if (!texto) return;
-    const r = await fetch(`/api/comments/school/${s.id}`, { method:'POST', body: JSON.stringify({ autor, texto }), headers: token? { Authorization: `Bearer ${token}` } : {} });
+    const r = await fetch(`/api/comments/school/${s.id}`, { method:'POST', body: JSON.stringify({ autor, texto }) });
     if (!r.ok) { toast('No se pudo agregar el comentario', 'error'); return; }
     (document.getElementById('sdAutor') as HTMLInputElement).value='';
     (document.getElementById('sdTexto') as HTMLInputElement).value='';
@@ -113,7 +113,7 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
   async function delComment(id:string){ setConfirmCommentId(id); }
   async function confirmDeleteComment(){
     if (!confirmCommentId) return;
-    const r = await fetch(`/api/comments/${confirmCommentId}`, { method:'DELETE', headers: token? { Authorization: `Bearer ${token}` } : {} });
+    const r = await fetch(`/api/comments/${confirmCommentId}`, { method:'DELETE' });
     setConfirmCommentId('');
     if (!r.ok) { toast('No se pudo eliminar el comentario', 'error'); return; }
     toast('Comentario eliminado', 'success');
@@ -123,7 +123,7 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
   return (
     <Modal isOpen={open} title={s?.nombre || 'Colegio'} onClose={onClose}>
       {!s ? (
-        <div className="meta">Cargando…</div>
+        <div className="meta">Cargando...</div>
       ) : (
         <div className="grid" style={{gap:16}}>
           {/* Datos del colegio */}
@@ -134,10 +134,11 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
             </div>
             <div className="grid" style={{gridTemplateColumns:'1fr 1fr', gap:10}}>
               <div><label>Nombre</label><input value={s.nombre||''} onChange={e=>setS({...s, nombre:e.target.value})} /></div>
-              <div><label>Teléfono</label><input value={s.telefono||''} onChange={e=>setS({...s, telefono:e.target.value})} /></div>
+              <div><label>Direccion</label><input value={s.direccion||''} onChange={e=>setS({...s, direccion:e.target.value})} /></div>
+              <div><label>Telefono</label><input value={s.telefono||''} onChange={e=>setS({...s, telefono:e.target.value})} /></div>
               <div><label>Correo</label><input value={s.correo||''} onChange={e=>setS({...s, correo:e.target.value})} /></div>
-              <div><label>Página web</label><input value={s.pagina_web||''} onChange={e=>setS({...s, pagina_web:e.target.value})} /></div>
-              <div><label>Código colegio</label><input value={s.codigo_colegio||''} onChange={e=>setS({...s, codigo_colegio:e.target.value})} /></div>
+              <div><label>Pagina web</label><input value={s.pagina_web||''} onChange={e=>setS({...s, pagina_web:e.target.value})} /></div>
+              <div><label>Codigo colegio</label><input value={s.codigo_colegio||''} onChange={e=>setS({...s, codigo_colegio:e.target.value})} /></div>
               <div><label>Nombre director</label><input value={s.director_nombre||''} onChange={e=>setS({...s, director_nombre:e.target.value})} /></div>
               <div><label>Apellido director</label><input value={s.director_apellido||''} onChange={e=>setS({...s, director_apellido:e.target.value})} /></div>
               <div><label>Email director</label><input value={s.director_email||''} onChange={e=>setS({...s, director_email:e.target.value})} /></div>
@@ -238,8 +239,8 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
           const hora = (document.getElementById('sdHora') as HTMLInputElement)?.value;
           const tipo = (document.getElementById('sdTipo') as HTMLSelectElement)?.value as any;
           const descripcion = (document.getElementById('sdDesc') as HTMLInputElement)?.value || '';
-          const observaciones = (document.getElementById('sdObs') as HTMLInputElement)?.value || '';
-          const r2 = await fetch(`/api/appointments/school/${s.id}`, { method:'POST', body: JSON.stringify({ fecha, hora, tipo, descripcion, observaciones, force: true }), headers: token? { Authorization: `Bearer ${token}` } : {} });
+          const Observaciones = (document.getElementById('sdObs') as HTMLInputElement)?.value || '';
+          const r2 = await fetch(`/api/appointments/school/${s.id}`, { method:'POST', body: JSON.stringify({ fecha, hora, tipo, descripcion, Observaciones, force: true }) });
           setConflictOpen(false);
           if (!r2.ok) return; loadAll();
         } : undefined}
@@ -285,4 +286,7 @@ export default function SchoolDetail({ schoolId, open, onClose, onOpenCourse }: 
     </Modal>
   );
 }
+
+
+
 

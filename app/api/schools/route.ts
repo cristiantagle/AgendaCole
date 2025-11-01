@@ -6,8 +6,7 @@ export async function GET(req: Request) {
   const estado = searchParams.get('estado') || 'todos';
   const sort = searchParams.get('sort') || 'nombre';
 
-  const token = req.headers.get('authorization')?.replace(/^Bearer\s+/i,'');
-  const s = supabaseServer(token || undefined);
+  const s = supabaseServer();
   let q = s.from('colegios').select('*');
   if (search) {
     const like = `%${search}%`;
@@ -20,7 +19,8 @@ export async function GET(req: Request) {
         `director_nombre.ilike.${like}`,
         `director_apellido.ilike.${like}`,
         `director_email.ilike.${like}`,
-        `pagina_web.ilike.${like}`
+        `pagina_web.ilike.${like}`,
+        `direccion.ilike.${like}`
       ].join(',')
     );
   }
@@ -34,8 +34,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const token = req.headers.get('authorization')?.replace(/^Bearer\s+/i,'');
-  const s = supabaseServer(token || undefined);
+  const s = supabaseServer();
   const payload = {
     id: crypto.randomUUID(),
     nombre: (body.nombre||'').trim(),
@@ -45,7 +44,8 @@ export async function POST(req: Request) {
     pagina_web: body.pagina_web || null,
     director_nombre: body.director_nombre || null,
     director_apellido: body.director_apellido || null,
-    director_email: body.director_email || null
+    director_email: body.director_email || null,
+    direccion: body.direccion || null
   };
   if (!payload.nombre) return Response.json({ error: 'Nombre requerido' }, { status: 400 });
   const { data, error } = await s.from('colegios').insert(payload).select('*').single();

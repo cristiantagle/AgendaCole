@@ -1,8 +1,7 @@
 import { supabaseServer } from '@/lib/supabase';
 
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const token = req.headers.get('authorization')?.replace(/^Bearer\s+/i,'');
-  const s = supabaseServer(token || undefined);
+export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  const s = supabaseServer();
   const { id } = await params;
   const { error } = await s.from('comentarios').delete().eq('id', id);
   if (error) return Response.json({ error: error.message }, { status: 400 });

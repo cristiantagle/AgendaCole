@@ -5,6 +5,7 @@ create table if not exists colegios (
   nombre text not null,
   telefono text,
   correo text,
+  direccion text,
   estado text default 'no_contactado' check (estado in ('no_contactado','contactado')),
   comentarios text,
   -- Nuevos campos estructurados
@@ -51,10 +52,11 @@ alter table colegios add column if not exists pagina_web text;
 alter table colegios add column if not exists director_nombre text;
 alter table colegios add column if not exists director_apellido text;
 alter table colegios add column if not exists director_email text;
+alter table colegios add column if not exists direccion text;
 create index if not exists idx_colegios_nombre on colegios(lower(nombre));
 create index if not exists idx_colegios_codigo on colegios(codigo_colegio);
 
--- RLS (opcional): permitir lectura/escritura a todos los usuarios anónimos
+-- RLS (opcional): permitir lectura/escritura a todos los usuarios anonimos
 -- alter table colegios enable row level security;
 -- alter table cursos enable row level security;
 -- alter table agendamientos enable row level security;
@@ -63,3 +65,7 @@ create index if not exists idx_colegios_codigo on colegios(codigo_colegio);
 -- create policy "anon_all_cursos" on cursos for all using (true) with check (true);
 -- create policy "anon_all_agenda" on agendamientos for all using (true) with check (true);
 -- create policy "anon_all_coment" on comentarios for all using (true) with check (true);
+
+
+
+
