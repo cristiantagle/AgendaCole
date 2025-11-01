@@ -1,78 +1,81 @@
-Contexto y estado del proyecto (Resumen actualizado)
+Contexto y estado del proyecto (resumen)
+=======================================
 
-Estructura actual (Next.js en raíz)
-- SPA estática (legacy prototipo):
-  - `legacy-spa/` con `index.html`, `css/styles.css`, `js/*`. Solo referencia.
-- Aplicación principal (Next.js 16 + React 19):
-  - `app/` — App Router, páginas y modales.
-  - `components/` — `Modal`, `Toaster`, `ConfirmDialog`, `SchoolDetail`, `CourseAgenda`, `AddSchoolModal`, `EditAppointmentModal`.
-  - `lib/` — `supabase-browser`, `supabase` (server), `toast` helper.
-  - `app/api/**` — Rutas API (Supabase) para colegios, cursos, agendamientos, comentarios, import.
-  - `supabase_schema.sql` (raíz) — Esquema de tablas e índices.
-  - `ejemplo1.png`, `ejemplo2.png` — Referencias visuales.
+Estructura actual
+-----------------
+- `legacy-spa/`: prototipo estático (HTML/CSS/JS) solo de referencia.
+- `app/`: App Router de Next.js (páginas, modales y rutas API).
+- `components/`: UI reutilizable (`Modal`, `Toaster`, `ConfirmDialog`, `SchoolDetail`, `CourseAgenda`, `AddSchoolModal`, `EditAppointmentModal`).
+- `lib/`: helpers de Supabase (`supabase-browser`, `supabase`) y utilidades (ej. `toast`).
+- `app/api/**`: rutas para colegios, cursos, agendamientos, comentarios e importación.
+- `supabase_schema.sql`: definición de tablas e índices.
+- `public/ejemplo*.png`: referencias visuales.
 
 Dependencias clave
-- Next.js 16 (App Router), React 19.
-- @supabase/supabase-js v2 (DB/Auth/RLS), XLSX para importación.
-- Tailwind base + estilos globales custom (no shadcn por ahora).
+------------------
+- Next.js 16 (App Router) + React 19.
+- `@supabase/supabase-js` v2 para DB/RLS, sesiones públicas.
+- `xlsx` para importar planillas.
+- Tailwind base + estilos propios (`app/globals.css`).
 
-Supabase (DB) — Tablas y campos relevantes
-- colegios: id (text), nombre (text), telefono, correo, estado, comentarios,
-  codigo_colegio, pagina_web, director_nombre, director_apellido, director_email,
-  lat (double precision), lng (double precision).
-- cursos: id (text), id_colegio (FK), curso (text) con índice único (id_colegio, lower(curso)).
-- agendamientos: id (text), id_colegio (nullable), id_curso (nullable), tipo ('llamada'|'visita'), fecha (date), hora (time), descripcion, observaciones.
-- comentarios: id (text), id_colegio, autor, fecha (timestamptz), texto.
+Supabase (DB)
+-------------
+- `colegios`: id, nombre, telefono, correo, estado, comentarios, codigo_colegio, pagina_web, direccion, director_nombre/apellido/email.
+- `cursos`: id, id_colegio, curso (único por colegio, indexado en lower-case).
+- `agendamientos`: id, id_colegio (nullable), id_curso (nullable), tipo (`llamada` | `visita`), fecha, hora, descripcion, observaciones.
+- `comentarios`: id, id_colegio, autor, fecha (timestamptz), texto.
+- En `supabase_schema.sql` se incluyen alters idempotentes para nuevos campos e índices.
 
 Autenticación y RLS
-- La aplicación funciona sin login; todas las peticiones usan el cliente público de Supabase.
-- RLS preparado para activarse (políticas fuera de este archivo). Ajustar policies según roles.
+-------------------
+- La app funciona sin login: todas las peticiones usan el cliente público (`supabaseServer()` sin token).
+- Las políticas RLS permanecen preparadas pero deben activarse manualmente según roles.
 
-Importación Excel (`app/api/import/route.ts`)
-- Detección robusta de columnas (insensible a mayúsculas/espacios):
-  - "colegio" (obligatoria) — fuerza uso como nombre aunque el mapping apunte a otra cosa.
-  - "curso" + "letra curso" — se concatena (ej. `1` + `A` ⇒ `1A`).
-  - Teléfono: múltiples variantes (TELÉFONO COLEGIO/TELÉFONOCOLEGIO/telefono...).
-  - Web: PÁGINAWEB/PaginaWeb/página web.
-  - Código colegio, y director: nombre, apellido, email.
-- Evita duplicar colegios por nombre (ilike) y cursos por (colegio, curso lowercase).
-- Actualiza campos estructurados y siempre refresca el teléfono si viene en Excel.
+Importación de Excel (`app/api/import/route.ts`)
+------------------------------------------------
+- Mapea columnas de forma tolerante a mayúsculas/espacios.
+- Usa la columna “colegio” como nombre principal; concatena “curso” + “letra curso”.
+- Normaliza teléfono, web, dirección y datos del director.
+- Evita duplicar colegios (nombre ilike o código) y cursos (colegio+curso lowercase).
+- Sobrescribe teléfono existente si hay dato nuevo en la planilla.
 
-UI/UX (mobile-first, todo en modales)
-- ConfirmDialog: reemplaza confirm nativo para eliminaciones (colegios, agendamientos, etc.).
-- EditAppointmentModal: edición de fecha/hora en "Próximos agendamientos" (sin prompts).
-- SchoolDetail (modal): edición de colegio, agenda del colegio, cursos (agregar/eliminar/abrir agenda), comentarios.
-- CourseAgenda (modal): solo "Visita"; emite `app:refresh-appointments` para refrescar SchoolDetail.
-- AddSchoolModal: alta de colegio + curso inicial opcional (sin prompts).
-- Tarjetas: filas de Teléfono/Web/Correo con links; nombres de colegio (no códigos); badges de tipo y curso.
-- Enlaces Web con protocolo absoluto (https) para evitar 404 en Vercel.
-- Topbar y footer visibles; scroll interno de modales pulido (estilos en `app/globals.css`).
+UI/UX (mobile-first)
+--------------------
+- Todo se gestiona vía modales (`SchoolDetail`, `CourseAgenda`, etc.).
+- Topbar con navegación responsive (links en desktop, menú hamburger en mobile).
+- Toolbars y tarjetas planificadas para pantallas pequeñas (inputs táctiles, botones full-width).
+- Los enlaces externos fuerzan https para evitar errores en Vercel.
+- El modal de Waze ahora pide dirección legible (no coordenadas) y la persistencia se guarda en localStorage y DB.
 
 Validación de conflictos (±2h)
-- Back-end: 409 `{ conflict: true, count, conflicts: [{ fecha, hora, tipo, colegio, curso }], allowedForce }`.
-- `allowedForce = true` solo si todos los conflictos son del mismo colegio.
-- Front-end: modal "Horario ocupado" con badges (Colegio/Curso/Tipo) y CTA "Agendar de todas maneras" solo si `allowedForce`.
+------------------------------
+- Backend responde 409 con `conflicts` y `allowedForce`.
+- Solo se permite forzar si los choques pertenecen al mismo colegio.
+- Frontend muestra modal “Horario ocupado” con badges Colegio/Curso/Tipo; habilita CTA “Agendar de todas maneras” según `allowedForce`.
 
-Waze (navegación)
-- Botón con ícono en cada tarjeta abre un modal para ingresar la dirección del colegio.
-- Al guardar: persistencia en `localStorage` por colegio y `PATCH /api/schools/{id}` con `{ direccion }`.
-- Abre `https://waze.com/ul?q=<DIRECCION>` (app/web según dispositivo).
-- El modal precarga la dirección desde localStorage o desde la base si existe.
+Waze
+----
+- El botón de cada tarjeta abre modal de dirección.
+- Guarda `{ direccion }` en `localStorage` y `PATCH /api/schools/{id}`.
+- Abre `https://waze.com/ul?q=<DIRECCION>` (app/web).
 
 Búsqueda y dashboard
-- Filtro `q` busca por: nombre, teléfono, correo, dirección, código, director (nombre/apellido/email), web.
-- Acciones en tarjeta: Waze, marcar contactado/no, ver detalle, eliminar.
-- Importar/Exportar XLSX desde toolbar.
+--------------------
+- Filtro `q` busca en nombre, teléfono, correo, dirección, código, datos del director y web.
+- Acciones por tarjeta: Waze, marcar contacto, ver detalle, eliminar.
+- Toolbar con importación/exportación XLSX.
 
-Cómo correr en local
-- Copiar `.env.example` a `.env.local` y completar `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-- `npm i` y `npm run dev` (Next 16 + Turbopack).
-- Si hay errores raros, borrar `.next` y reiniciar dev.
+Ejecución local
+---------------
+1. Copiar `.env.example` a `.env.local` y rellenar `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+2. `npm install`.
+3. `npm run dev` (Turbopack).
+4. Si aparecen errores extraños, borrar `.next/` y reiniciar.
 
 Notas para agentes
-- Respetar `allowedForce` en conflictos; solo forzar si todos los choques son del mismo colegio.
-- Reutilizar `Modal`, `ConfirmDialog`, `Toaster` y estilos globales; evitar librerías de UI adicionales salvo acuerdo.
-- Evitar emojis en UI; preferir íconos (lucide o SVG inline) y texto UTF-8 correcto.
-- Mantener nombres de colegio visibles en UI (no códigos). Código es interno para lógica/búsqueda.
-- Si agregas nuevos campos persistentes, refleja cambios en `supabase_schema.sql` y en rutas API.
-codex resume 019a2f98-fd48-78b0-bd9b-e89901ef92bf
+------------------
+- Mantener el flujo sin login ni headers `Authorization`.
+- Usar componentes existentes (`Modal`, `ConfirmDialog`, `Toaster`) y clases globales; evitar UI libs extra.
+- Asegurar que los campos nuevos se reflejen en `supabase_schema.sql` y en las rutas API.
+- Respetar la lógica de conflictos y el evento `app:refresh-appointments`.
+- Mantener nombres de colegio visibles; los códigos son internos para búsqueda.
